@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hello Rialo</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 320px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 12px;
+    }
+    button {
+      background: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    p { color: #333; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🦋 Hello Rialo</h2>
+    <p>Store and read a message “on-chain”.</p>
+    <input id="messageInput" placeholder="Type your message..." />
+    <button onclick="storeMessage()">Save Message</button>
+    <h3>📜 Latest Message:</h3>
+    <p id="displayMessage">None yet</p>
+  </div>
+
+  <script>
+    function storeMessage() {
+      const msg = document.getElementById("messageInput").value;
+      localStorage.setItem("helloRialoMessage", msg);
+      document.getElementById("displayMessage").innerText = msg || "None yet";
+      alert("Message stored (simulated on-chain)!");
+    }
+
+    const saved = localStorage.getItem("helloRialoMessage");
+    if (saved) document.getElementById("displayMessage").innerText = saved;
+  </script>
+</body>
+</html>
