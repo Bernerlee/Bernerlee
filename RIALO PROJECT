@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rialo Prediction Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rialo Live Arcade</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -11,16 +11,31 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
       text-align: center;
+    }
+    h1 {
+      margin-bottom: 16px;
+    }
+    .balance {
+      font-weight: bold;
+      color: #0070f3;
+      margin-bottom: 24px;
+    }
+    .games {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 960px;
     }
     .card {
       background: white;
       border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      padding: 24px;
-      width: 320px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px;
     }
     button {
       background: #0070f3;
@@ -31,41 +46,133 @@
       margin: 8px;
       cursor: pointer;
     }
-    p { color: #333; }
+    p {
+      color: #333;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>🎯 Rialo Prediction Game</h2>
-    <p>Will Bitcoin's price go up today?</p>
-    <button onclick="makePrediction('yes')">Yes 🚀</button>
-    <button onclick="makePrediction('no')">No 📉</button>
-    <p id="result"></p>
+  <h1>🎮 Rialo Live Arcade</h1>
+  <p class="balance" id="balance">Rialo Tokens: ...</p>
+
+  <div class="games">
+    <!-- Game 1: Bitcoin -->
+    <div class="card">
+      <h3>💰 Bitcoin Price Prediction</h3>
+      <p>Will Bitcoin's price go up today?</p>
+      <button onclick="btcPredict('yes')">Yes 🚀</button>
+      <button onclick="btcPredict('no')">No 📉</button>
+      <p id="btcResult"></p>
+    </div>
+
+    <!-- Game 2: Weather -->
+    <div class="card">
+      <h3>☁️ Weather Guess</h3>
+      <p>Will it rain in London today?</p>
+      <button onclick="weatherPredict('yes')">Yes 🌧️</button>
+      <button onclick="weatherPredict('no')">No ☀️</button>
+      <p id="weatherResult"></p>
+    </div>
+
+    <!-- Game 3: Sports -->
+    <div class="card">
+      <h3>⚽ Sports Pulse</h3>
+      <p>Will Real Madrid win their next match?</p>
+      <button onclick="sportsPredict('yes')">Yes 🏆</button>
+      <button onclick="sportsPredict('no')">No ❌</button>
+      <p id="sportsResult"></p>
+    </div>
   </div>
 
   <script>
-    let prediction = null;
+    let balance = parseInt(localStorage.getItem("rialoTokens")) || 100;
+    function updateBalance() {
+      document.getElementById("balance").innerText = `Rialo Tokens: ${balance}`;
+    }
+    updateBalance();
 
-    async function makePrediction(choice) {
-      prediction = choice;
-      document.getElementById('result').innerText = "Fetching live data...";
-      await checkBitcoinPrice();
+    function adjustTokens(amount) {
+      balance += amount;
+      localStorage.setItem("rialoTokens", balance);
+      updateBalance();
     }
 
-    async function checkBitcoinPrice() {
+    // ---------- Game 1: Bitcoin ----------
+    async function btcPredict(choice) {
+      document.getElementById("btcResult").innerText = "Fetching Bitcoin data...";
       try {
-        const res = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin');
+        const res = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin");
         const data = await res.json();
         const change = data.market_data.price_change_percentage_24h;
-        let wentUp = change > 0;
-
-        if ((wentUp && prediction === 'yes') || (!wentUp && prediction === 'no')) {
-          document.getElementById('result').innerHTML = `✅ You won! Bitcoin changed ${change.toFixed(2)}% today.`;
+        const wentUp = change > 0;
+        if ((wentUp && choice === "yes") || (!wentUp && choice === "no")) {
+          adjustTokens(10);
+          document.getElementById(
+            "btcResult"
+          ).innerHTML = `✅ You won! BTC changed ${change.toFixed(
+            2
+          )}% today. +10 RLT`;
         } else {
-          document.getElementById('result').innerHTML = `❌ You lost! Bitcoin changed ${change.toFixed(2)}% today.`;
+          adjustTokens(-5);
+          document.getElementById(
+            "btcResult"
+          ).innerHTML = `❌ You lost! BTC changed ${change.toFixed(
+            2
+          )}% today. -5 RLT`;
         }
-      } catch (error) {
-        document.getElementById('result').innerText = "Error fetching data.";
+      } catch {
+        document.getElementById("btcResult").innerText = "Error fetching Bitcoin data.";
+      }
+    }
+
+    // ---------- Game 2: Weather ----------
+    const WEATHER_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY"; // <- insert your free key
+
+    async function weatherPredict(choice) {
+      document.getElementById("weatherResult").innerText = "Checking forecast...";
+      try {
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=London&appid=${WEATHER_API_KEY}`
+        );
+        const data = await res.json();
+        const hasRain = data.weather.some(w => w.main.toLowerCase().includes("rain"));
+        if ((hasRain && choice === "yes") || (!hasRain && choice === "no")) {
+          adjustTokens(10);
+          document.getElementById(
+            "weatherResult"
+          ).innerText = `✅ Correct! ${hasRain ? "It’s raining" : "No rain"} in London. +10 RLT`;
+        } else {
+          adjustTokens(-5);
+          document.getElementById(
+            "weatherResult"
+          ).innerText = `❌ Wrong! ${hasRain ? "It’s raining" : "Dry day"} in London. -5 RLT`;
+        }
+      } catch {
+        document.getElementById("weatherResult").innerText = "Error fetching weather.";
+      }
+    }
+
+    // ---------- Game 3: Sports (simplified demo using placeholder data) ----------
+    async function sportsPredict(choice) {
+      document.getElementById("sportsResult").innerText = "Fetching match info...";
+      try {
+        const res = await fetch(
+          "https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=Real_Madrid"
+        );
+        const data = await res.json();
+        // For demo, randomly decide win/loss (real API for live match needs key)
+        const randomOutcome = Math.random() > 0.5 ? "yes" : "no";
+        if (choice === randomOutcome) {
+          adjustTokens(10);
+          document.getElementById("sportsResult").innerText =
+            "✅ Real Madrid won! +10 RLT (simulated)";
+        } else {
+          adjustTokens(-5);
+          document.getElementById("sportsResult").innerText =
+            "❌ Real Madrid lost! -5 RLT (simulated)";
+        }
+      } catch {
+        document.getElementById("sportsResult").innerText = "Error fetching sports data.";
       }
     }
   </script>
